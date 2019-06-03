@@ -1,0 +1,40 @@
+---
+# Run with ansible-playbook <filename> -k
+#  (make sure to add the IPs of machines you want to manage to /etc/ansibles/hosts first)
+
+- hosts: gw
+  gather_facts: False
+  remote_user: root
+  # become: yes
+  # become_user: root
+  # become_method: sudo
+
+  tasks:
+    - name: Install python 2
+      raw: test -e /usr/bin/python || (yum update -y && yum install -y python)
+
+    - name: Fancy way of doing authorized_keys
+      authorized_key: user=root
+                      exclusive=no
+                      key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+    #- name: Create /root/.ssh
+    #  file: path=/root/.ssh state=directory mode=0700
+
+    #- name: Create /root/.ssh/authorized_keys from our local ssh pubkey
+    #  lineinfile: dest=/root/.ssh/authorized_keys lines="{{ lookup('file','~/.ssh/id_rsa.pub') }}"
+
+    - name: Set timezone to Asia/Singapore
+      raw: ( timedatectl |grep "Time zone" |grep -i Singapore) || timedatectl set-timezone Asia/Singapore
+
+    - name: Add lines to avoid "LC_TYPE" error in Mac OSX terminal
+      lineinfile: dest=/etc/environment line='{{ item }}' state=present backup=yes
+      with_items:
+        - '# Add following 2 lines to fix LC_TYPE error'
+        - 'LANG=en_US.utf-8'
+        - 'LC_ALL=en_US.utf-8'
+
+    - name: Install epel repo
+      package: name=epel-release state=latest
+
+

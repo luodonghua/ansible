@@ -1,0 +1,5 @@
+[all]
+Donghuas-MacBook-Air.local
+
+[gw]
+192.168.31.78 ansible_python_interpreter=/usr/bin/python ansible_user=root
